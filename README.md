@@ -1,1 +1,1 @@
-geolocalizacao
+Projeto contendo a lógica da API de geolocalização do google maps
