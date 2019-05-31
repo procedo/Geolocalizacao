@@ -110,7 +110,7 @@ class Geolocalizacao
     private function requisicao($dados)
     {
         $url = $this->montaURL($dados);
-        
+
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -131,23 +131,41 @@ class Geolocalizacao
      * @return string
      */
     private function montaURL($dados)
-    {        
-
+    {
         $url = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
-        if (!empty($dados['logradouro'])) {
+        
+        $dados['numero'] = strtoupper( $dados['numero'] );
+        $digitosCep = explode("-",$dados['cep']);
+        
+        //Faz a busca por CEP (quando não existe o cep individual "000") e número 
+        if( !empty( $dados['cep'] ) && $digitosCep !== '000'  && $dados['numero'] !== "S/N" && false){  
+            $url .= urlencode($dados['cep'] . ", ");
+            $url .= urlencode($dados['numero'] . ", "); 
+        }
+        //Faz a busca por nome da rua, número, bairro, cidade e estado
+        else if( !empty( $dados['logradouro'] ) && $dados['numero'] !== "S/N" && !empty( $dados['bairro'] ) && !empty( $dados['cidade'] )  && !empty( $dados['uf'] ) ){
             $url .= urlencode($dados['logradouro'] . ", ");
-            if (!empty($dados['numero'])) {
-                $url .= urlencode(str_replace('-', '', $dados['numero']) . ", ");
+            if( !empty( $dados['cidade'] ) && $dados['cidade'] == "Bauru" ){                
+                //API só retorna correto em bauru se estiver com o hifen no número
+                $url .= urlencode($dados['numero'] . ", ");
+            }else{                
+                $url .= urlencode( str_replace('-', '', $dados['numero'] ) . ", ");
             }
+            $url .= urlencode( $dados['cidade'] . ", " );
+            $url .= urlencode( $dados['bairro'] . ", " );
+            $url .= urlencode( $dados['uf'] . ", " );
         }
-        if (!empty($dados['cidade'])) {
-            $url .= urlencode($dados['cidade'] . ", ");
+        //Faz a busca com cidade, logradouro, bairro, cep e uf
+        else if( !empty($dados['logradouro']) && !empty( $dados['cidade'] ) ){
+            $url .= urlencode( $dados['cidade'] . ", " );
+            $url .= urlencode($dados['logradouro'] . ", ");
+            $url .= urlencode( $dados['bairro'] . ", " ); 
+            $url .= urlencode($dados['cep'] . ", ");           
+            $url .= urlencode( $dados['uf'] . ", " );
         }
-        if (!empty($dados['uf'])) {
-            $url .= urlencode($dados['uf']);
-        }
+        
+        $url .= urlencode($dados['pais'] . ", "); 
         $url .= '&key=' . $this->chave;
-        $url .= '&components=postal_code:' . $dados['cep'];
 
         return $url;
     }
