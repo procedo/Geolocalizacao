@@ -134,13 +134,19 @@ class Geolocalizacao
     {
         $url = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
         
-        $dados['numero'] = strtoupper( $dados['numero'] );
-        $digitosCep = explode("-",$dados['cep']);
+        if( !empty( $dados['numero'] )) {
+            $dados['numero'] =  strtoupper( $dados['numero'] );
+        }
         
-        //Faz a busca por CEP (quando não existe o cep individual "000") e número 
-        if( !empty( $dados['cep'] ) && $digitosCep !== '000'  && $dados['numero'] !== "S/N" && false){  
-            $url .= urlencode($dados['cep'] . ", ");
-            $url .= urlencode($dados['numero'] . ", "); 
+        if( !empty( $dados['cep'] ) ) {
+            
+            $digitosCep = explode("-",$dados['cep']);
+
+            //Faz a busca por CEP (quando não existe o cep individual "000") e número 
+            if( $digitosCep !== '000'  && $dados['numero'] !== "S/N" && false){  
+                $url .= urlencode($dados['cep'] . ", ");
+                $url .= urlencode($dados['numero'] . ", "); 
+            }
         }
         //Faz a busca por nome da rua, número, bairro, cidade e estado
         else if( !empty( $dados['logradouro'] ) && $dados['numero'] !== "S/N" && !empty( $dados['bairro'] ) && !empty( $dados['cidade'] )  && !empty( $dados['uf'] ) ){
@@ -160,11 +166,18 @@ class Geolocalizacao
             $url .= urlencode( $dados['cidade'] . ", " );
             $url .= urlencode($dados['logradouro'] . ", ");
             $url .= urlencode( $dados['bairro'] . ", " ); 
-            $url .= urlencode($dados['cep'] . ", ");           
+
+            if( !empty($dados['cep'])) {
+                $url .= urlencode($dados['cep'] . ", ");
+            }
+            
             $url .= urlencode( $dados['uf'] . ", " );
         }
         
-        $url .= urlencode($dados['pais'] . ", "); 
+        if( !empty( $dados['pais'] ) ){
+            $url .= urlencode($dados['pais'] . ", "); 
+        }
+        
         $url .= '&key=' . $this->chave;
 
         return $url;
